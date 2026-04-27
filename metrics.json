@@ -1,0 +1,10 @@
+{
+  "accuracy": 1.0,
+  "model": "PassiveAggressiveClassifier",
+  "vectorizer": "TfidfVectorizer",
+  "labels": {
+    "0": "Fake News",
+    "1": "Real News"
+  },
+  "note": "Included model is trained on included demo dataset. For best accuracy, replace dataset files with Kaggle/ISOT dataset and run train_model.py."
+}
