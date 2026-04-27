@@ -6,7 +6,7 @@ A fast and lightweight **Fake News Detection Web App** built using **Natural Lan
 
 ## 🚀 Live Demo
 
-👉 https://fakenewsdetection-by-vinod.streamlit.app/
+👉 https://fakenewsdetection-by-vindo.streamlit.app/
 
 ---
 
