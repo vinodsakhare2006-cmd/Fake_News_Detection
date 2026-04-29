@@ -177,12 +177,6 @@ Always verify important news from trusted and official sources.
 
 ---
 
-## 👨‍💻 Author
-
-**Kailash Dake**
-
----
-
 ## ⭐ Support
 
 If you like this project, please give it a ⭐ on GitHub.
