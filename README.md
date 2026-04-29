@@ -8,6 +8,9 @@ A fast and lightweight **Fake News Detection Web App** built using **Natural Lan
 
 👉 https://fakenewsdetection-by-vinod.streamlit.app/
 
+IMG URL
+![Fake News Detection](https://images.unsplash.com/photo-1504711434969-e33886168f5c)
+
 ---
 
 ## 📌 Project Overview
