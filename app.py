@@ -1,66 +1,112 @@
 import pickle
 from pathlib import Path
-
-import pandas as pd
 import streamlit as st
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.linear_model import PassiveAggressiveClassifier
 
 st.set_page_config(
-    page_title="Fake News Detection",
+    page_title="Fake News Detection Pro",
     page_icon="📰",
-    layout="centered"
+    layout="wide"
 )
+
+page_bg = """
+<style>
+.stApp {
+    background-image:
+        linear-gradient(rgba(0,0,0,0.65), rgba(0,0,0,0.75)),
+        url("https://images.unsplash.com/photo-1504711434969-e33886168f5c");
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+}
+
+.main-card {
+    background: rgba(255, 255, 255, 0.13);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-radius: 24px;
+    padding: 35px;
+    border: 1px solid rgba(255,255,255,0.25);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+    animation: fadeIn 1s ease-in-out;
+}
+
+.title {
+    font-size: 48px;
+    font-weight: 800;
+    color: white;
+    text-align: center;
+}
+
+.subtitle {
+    color: #e5e7eb;
+    text-align: center;
+    font-size: 18px;
+    margin-bottom: 25px;
+}
+
+.stTextArea textarea {
+    background: rgba(255,255,255,0.92) !important;
+    color: #111827 !important;
+    border-radius: 15px !important;
+}
+
+.stButton button {
+    width: 100%;
+    border-radius: 14px;
+    padding: 12px;
+    font-weight: 700;
+    background: linear-gradient(90deg, #ef4444, #f97316);
+    color: white;
+    border: none;
+    transition: 0.3s;
+}
+
+.stButton button:hover {
+    transform: scale(1.03);
+    box-shadow: 0 0 18px rgba(249,115,22,0.8);
+}
+
+.result-box {
+    background: rgba(255,255,255,0.16);
+    backdrop-filter: blur(14px);
+    border-radius: 18px;
+    padding: 22px;
+    margin-top: 20px;
+    border: 1px solid rgba(255,255,255,0.25);
+    color: white;
+    text-align: center;
+}
+
+.footer {
+    color: #d1d5db;
+    text-align: center;
+    margin-top: 30px;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(25px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+</style>
+"""
+st.markdown(page_bg, unsafe_allow_html=True)
 
 MODEL_PATH = Path("model.pkl")
 VECTORIZER_PATH = Path("vectorizer.pkl")
-DATASET_PATH = Path("dataset/news.csv")
-
-@st.cache_resource
-def train_from_dataset():
-    if not DATASET_PATH.exists():
-        st.error("dataset/news.csv not found. Please upload dataset/news.csv or valid model.pkl and vectorizer.pkl.")
-        st.stop()
-
-    df = pd.read_csv(DATASET_PATH)
-
-    if not {"title", "text", "label"}.issubset(df.columns):
-        st.error("dataset/news.csv must contain title, text, and label columns.")
-        st.stop()
-
-    df["content"] = df["title"].fillna("") + " " + df["text"].fillna("")
-
-    vectorizer = TfidfVectorizer(
-        stop_words="english",
-        max_df=0.85,
-        ngram_range=(1, 2)
-    )
-
-    X = vectorizer.fit_transform(df["content"])
-    y = df["label"]
-
-    model = PassiveAggressiveClassifier(
-        max_iter=1000,
-        random_state=42,
-        class_weight="balanced"
-    )
-
-    model.fit(X, y)
-    return model, vectorizer
 
 @st.cache_resource
 def load_artifacts():
-    try:
-        with open(MODEL_PATH, "rb") as f:
-            model = pickle.load(f)
-
-        with open(VECTORIZER_PATH, "rb") as f:
-            vectorizer = pickle.load(f)
-
-        return model, vectorizer
-
-    except Exception:
-        return train_from_dataset()
+    with open(MODEL_PATH, "rb") as f:
+        model = pickle.load(f)
+    with open(VECTORIZER_PATH, "rb") as f:
+        vectorizer = pickle.load(f)
+    return model, vectorizer
 
 def get_confidence(model, x):
     if hasattr(model, "decision_function"):
@@ -72,38 +118,40 @@ def get_confidence(model, x):
 
     return 75.0
 
-model, vectorizer = load_artifacts()
+try:
+    model, vectorizer = load_artifacts()
+except Exception:
+    st.error("❌ model.pkl or vectorizer.pkl not found. Keep both files with app.py.")
+    st.stop()
 
-st.title("📰 Fake News Detection")
-st.write("Enter news text below and check whether it is **Real** or **Fake**.")
+st.markdown('<div class="main-card">', unsafe_allow_html=True)
 
-sample_fake = (
-    "NASA has unveiled plans to construct the world's first luxury hotel on the Sun by 2035. "
-    "Officials claim advanced cooling technology will allow tourists to enjoy solar views."
+st.markdown('<div class="title">📰 Fake News Detection Pro</div>', unsafe_allow_html=True)
+st.markdown(
+    '<div class="subtitle">AI-powered news authenticity checker using NLP and Machine Learning</div>',
+    unsafe_allow_html=True
 )
 
-sample_real = (
-    "Scientists have developed an AI-powered tool to help doctors detect early signs of disease "
-    "from medical scans. Early testing suggests the tool may improve screening speed."
-)
+sample_fake = "NASA plans to build a luxury hotel on the Sun by 2035."
+sample_real = "Scientists develop AI tool for early disease detection."
 
 col1, col2 = st.columns(2)
 
 with col1:
-    if st.button("Try Fake Sample"):
+    if st.button("❌ Try Fake Sample"):
         st.session_state.news_text = sample_fake
 
 with col2:
-    if st.button("Try Real Sample"):
+    if st.button("✅ Try Real Sample"):
         st.session_state.news_text = sample_real
 
 news_text = st.text_area(
     "Enter News Content",
     value=st.session_state.get("news_text", ""),
-    height=220
+    height=230
 )
 
-if st.button("Predict"):
+if st.button("🚀 Predict News"):
     if not news_text.strip():
         st.warning("Please enter news content.")
     else:
@@ -112,12 +160,25 @@ if st.button("Predict"):
         confidence = get_confidence(model, vectorized_text)
 
         if prediction == 1:
-            st.success("✅ Prediction: Real News")
+            result = "✅ Real News"
         else:
-            st.error("❌ Prediction: Fake News")
+            result = "❌ Fake News"
+
+        st.markdown(
+            f"""
+            <div class="result-box">
+                <h2>{result}</h2>
+                <h3>Confidence: {confidence:.2f}%</h3>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
         st.progress(int(confidence))
-        st.write(f"Confidence: **{confidence:.2f}%**")
 
-st.markdown("---")
-st.caption("Educational project. Always verify important news from trusted sources.")
+st.markdown(
+    '<div class="footer">⚠️ Educational project. Always verify important news from trusted sources.</div>',
+    unsafe_allow_html=True
+)
+
+st.markdown("</div>", unsafe_allow_html=True)
